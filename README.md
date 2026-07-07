@@ -1,4 +1,4 @@
-# Easy SSH
+# EASY SSH
 
 Windows desktop SSH client built with Electron, React, Vite, and TypeScript.
 
@@ -51,7 +51,7 @@ release/Easy-SSH-Setup-0.1.0.exe
 
 Download the latest Windows installer from GitHub Releases:
 
-[Download Easy SSH for Windows](https://github.com/baozi-github/easy_ssh/releases/latest)
+[Download EASY SSH for Windows](https://github.com/baozi-github/easy_ssh/releases/latest)
 
 Direct download for version `0.1.0`:
 
