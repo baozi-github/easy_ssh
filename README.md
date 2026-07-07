@@ -1,4 +1,4 @@
-# XXLL SSH
+# Easy SSH
 
 Windows desktop SSH client built with Electron, React, Vite, and TypeScript.
 
@@ -44,23 +44,23 @@ npm run dist
 The installer will be generated in the `release/` directory:
 
 ```text
-release/XXLL SSH-Setup-0.1.0.exe
+release/Easy-SSH-Setup-0.1.0.exe
 ```
 
 ## Download
 
 Download the latest Windows installer from GitHub Releases:
 
-[Download XXLL SSH for Windows](https://github.com/baozi-github/easy_ssh/releases/latest)
+[Download Easy SSH for Windows](https://github.com/baozi-github/easy_ssh/releases/latest)
 
 Direct download for version `0.1.0`:
 
-[XXLL.SSH-Setup-0.1.0.exe](https://github.com/baozi-github/easy_ssh/releases/download/v0.1.0/XXLL.SSH-Setup-0.1.0.exe)
+[Easy-SSH-Setup-0.1.0.exe](https://github.com/baozi-github/easy_ssh/releases/download/v0.1.0/Easy-SSH-Setup-0.1.0.exe)
 
 SHA256:
 
 ```text
-2B7F1FEB03D66136FDE8D9ED63500F36394C28F66EEA8364A327FB88A9756382
+28CF631CD54C0DAFB051035A0706C863FA4908DAEB501163EDA1193394126EEB
 ```
 
 ## Project scripts

@@ -153,7 +153,7 @@ async function createWindow() {
     height: 780,
     minWidth: 980,
     minHeight: 640,
-    title: 'XXLL SSH',
+    title: 'Easy SSH',
     backgroundColor: '#111318',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

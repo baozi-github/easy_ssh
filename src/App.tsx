@@ -272,7 +272,7 @@ function Sidebar({
           <TerminalSquare size={20} />
         </div>
         <div>
-          <strong>XXLL SSH</strong>
+          <strong>Easy SSH</strong>
           <span>Desktop</span>
         </div>
       </div>

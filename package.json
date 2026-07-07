@@ -1,5 +1,5 @@
 {
-  "name": "xxll-ssh-desktop",
+  "name": "easy-ssh-desktop",
   "version": "0.1.0",
   "private": true,
   "description": "Windows desktop SSH client with tabs, local files, and saved connection history.",
@@ -13,8 +13,8 @@
     "start": "electron ."
   },
   "build": {
-    "appId": "com.xxll.sshdesktop",
-    "productName": "XXLL SSH",
+    "appId": "com.easy.sshdesktop",
+    "productName": "Easy SSH",
     "asar": true,
     "directories": {
       "output": "release"
@@ -38,7 +38,7 @@
           ]
         }
       ],
-      "artifactName": "${productName}-Setup-${version}.${ext}"
+      "artifactName": "Easy-SSH-Setup-${version}.${ext}"
     },
     "nsis": {
       "oneClick": false,
