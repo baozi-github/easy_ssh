@@ -55,7 +55,7 @@ Download the latest Windows installer from GitHub Releases:
 
 Direct download for version `0.1.0`:
 
-[XXLL SSH-Setup-0.1.0.exe](https://github.com/baozi-github/easy_ssh/releases/download/v0.1.0/XXLL%20SSH-Setup-0.1.0.exe)
+[XXLL.SSH-Setup-0.1.0.exe](https://github.com/baozi-github/easy_ssh/releases/download/v0.1.0/XXLL.SSH-Setup-0.1.0.exe)
 
 SHA256:
 
