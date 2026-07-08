@@ -91,11 +91,14 @@ type LocalTerminalTagsState = {
 type LocalTerminalSession = {
   pty: pty.IPty;
   window: BrowserWindow;
+  cwdBuffer: string;
 };
 
 const sessions = new Map<string, SshSession>();
 const localTerminalSessions = new Map<string, LocalTerminalSession>();
 const DEFAULT_GROUP_ID = 'default';
+const LOCAL_TERMINAL_CWD_OSC_PREFIX = '\x1b]1337;CurrentDir=';
+const LOCAL_TERMINAL_CWD_OSC_END = '\x07';
 
 function getMainWindow() {
   return BrowserWindow.getAllWindows()[0];
@@ -370,8 +373,22 @@ function shellCommand(shellName: 'powershell' | 'cmd') {
 function shellArgs(shellName: 'powershell' | 'cmd') {
   if (process.platform !== 'win32') return [];
   return shellName === 'cmd'
-    ? []
-    : ['-NoLogo', '-NoExit', '-ExecutionPolicy', 'Bypass'];
+    ? ['/K', `prompt $E]1337;CurrentDir=$P${LOCAL_TERMINAL_CWD_OSC_END}$P$G`]
+    : [
+        '-NoLogo',
+        '-NoExit',
+        '-ExecutionPolicy',
+        'Bypass',
+        '-Command',
+        [
+          'function global:prompt {',
+          '  $cwd = (Get-Location).ProviderPath;',
+          '  if (-not $cwd) { $cwd = (Get-Location).Path };',
+          "  [Console]::Write([char]27 + ']1337;CurrentDir=' + $cwd + [char]7);",
+          '  "PS $cwd> "',
+          '}'
+        ].join(' ')
+      ];
 }
 
 async function assertDirectory(targetPath: string) {
@@ -379,6 +396,41 @@ async function assertDirectory(targetPath: string) {
   const stats = await fs.stat(resolvedPath);
   if (!stats.isDirectory()) throw new Error('Path is not a directory');
   return resolvedPath;
+}
+
+function emitLocalTerminalCwd(tabId: string, data: string) {
+  const session = localTerminalSessions.get(tabId);
+  if (!session) return;
+
+  session.cwdBuffer += data;
+  while (true) {
+    const start = session.cwdBuffer.indexOf(LOCAL_TERMINAL_CWD_OSC_PREFIX);
+    if (start === -1) {
+      session.cwdBuffer = session.cwdBuffer.slice(-(LOCAL_TERMINAL_CWD_OSC_PREFIX.length - 1));
+      return;
+    }
+
+    const end = session.cwdBuffer.indexOf(
+      LOCAL_TERMINAL_CWD_OSC_END,
+      start + LOCAL_TERMINAL_CWD_OSC_PREFIX.length
+    );
+    if (end === -1) {
+      session.cwdBuffer = session.cwdBuffer.slice(start);
+      return;
+    }
+
+    const currentPath = session.cwdBuffer.slice(
+      start + LOCAL_TERMINAL_CWD_OSC_PREFIX.length,
+      end
+    );
+    session.cwdBuffer = session.cwdBuffer.slice(end + LOCAL_TERMINAL_CWD_OSC_END.length);
+    if (currentPath.trim()) {
+      sendLocalTerminalToTab(tabId, 'local-terminal:cwd', {
+        tabId,
+        path: path.resolve(currentPath)
+      });
+    }
+  }
 }
 
 async function createWindow() {
@@ -542,7 +594,10 @@ function registerIpc() {
     const now = new Date().toISOString();
     const existing = input.id
       ? state.tags.find((tag) => tag.id === input.id)
-      : state.tags.find((tag) => tag.path.toLowerCase() === resolvedPath.toLowerCase());
+      : state.tags.find(
+          (tag) =>
+            tag.path.toLowerCase() === resolvedPath.toLowerCase() && tag.name === safeName
+        );
 
     const tag: LocalTerminalTag = {
       id: existing?.id || `local-terminal-${Date.now()}-${Math.random().toString(16).slice(2)}`,
@@ -657,9 +712,10 @@ function registerIpc() {
       env
     });
 
-    localTerminalSessions.set(input.tabId, { pty: terminal, window: win });
+    localTerminalSessions.set(input.tabId, { pty: terminal, window: win, cwdBuffer: '' });
 
     terminal.onData((data) => {
+      emitLocalTerminalCwd(input.tabId, data);
       sendLocalTerminalToTab(input.tabId, 'local-terminal:data', {
         tabId: input.tabId,
         data

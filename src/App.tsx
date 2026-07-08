@@ -33,6 +33,7 @@ import type {
   LocalTerminalTag,
   LocalTerminalTagInput,
   LocalTerminalTagsState,
+  LocalTerminalShell,
   ProfilesState,
   ServerGroup,
   ServerProfile,
@@ -66,8 +67,9 @@ type LocalTerminalTab = {
   id: string;
   type: 'local-terminal';
   title: string;
+  baseTitle: string;
   path: string;
-  shell: 'powershell' | 'cmd';
+  shell: LocalTerminalShell;
   status: LocalTerminalStatus;
   message?: string;
 };
@@ -84,6 +86,7 @@ type SshEventPayload = {
 type LocalTerminalEventPayload = {
   tabId: string;
   data?: string;
+  path?: string;
   exitCode?: number;
 };
 
@@ -164,6 +167,16 @@ function formatTime(value: string) {
 function directoryName(value: string) {
   const parts = value.split(/[\\/]+/).filter(Boolean);
   return parts.at(-1) || value || '本地终端';
+}
+
+function numberedTabTitle(baseTitle: string, openTitles: string[]) {
+  if (!openTitles.includes(baseTitle)) return baseTitle;
+
+  let index = 2;
+  while (openTitles.includes(`${baseTitle} (${index})`)) {
+    index += 1;
+  }
+  return `${baseTitle} (${index})`;
 }
 
 function App() {
@@ -272,6 +285,18 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const offCwd = window.desktopApi.localTerminal.onCwd((payload) => {
+      const event = payload as LocalTerminalEventPayload;
+      if (!event.path) return;
+      setTabs((current) =>
+        current.map((tab) =>
+          tab.id === event.tabId && tab.type === 'local-terminal'
+            ? { ...tab, path: event.path! }
+            : tab
+        )
+      );
+    });
+
     const offClose = window.desktopApi.localTerminal.onClose((payload) => {
       const event = payload as LocalTerminalEventPayload;
       setTabs((current) =>
@@ -286,7 +311,10 @@ function App() {
         )
       );
     });
-    return offClose;
+    return () => {
+      offCwd();
+      offClose();
+    };
   }, []);
 
   const openLocalTab = () => {
@@ -297,19 +325,27 @@ function App() {
 
   const openLocalTerminal = async (targetPath: string, tag?: LocalTerminalTag) => {
     const id = uid('local-terminal');
-    const title = tag?.name || directoryName(targetPath);
+    const baseTitle = tag?.name || directoryName(targetPath);
     const shell = tag?.shell || 'powershell';
-    setTabs((current) => [
-      ...current,
-      {
-        id,
-        type: 'local-terminal',
-        title,
-        path: targetPath,
-        shell,
-        status: 'opening'
-      }
-    ]);
+    setTabs((current) => {
+      const openTitles = current
+        .filter((tab): tab is LocalTerminalTab => tab.type === 'local-terminal')
+        .map((tab) => tab.title);
+      const title = numberedTabTitle(baseTitle, openTitles);
+
+      return [
+        ...current,
+        {
+          id,
+          type: 'local-terminal',
+          title,
+          baseTitle,
+          path: targetPath,
+          shell,
+          status: 'opening'
+        }
+      ];
+    });
     setActiveTabId(id);
 
     try {
@@ -349,7 +385,10 @@ function App() {
     }
   };
 
-  const saveLocalTerminalTag = async (targetPath: string) => {
+  const saveLocalTerminalTag = async (
+    targetPath: string,
+    shell: LocalTerminalShell = 'powershell'
+  ) => {
     const groupOptions =
       localTerminalState.groups.length > 0
         ? localTerminalState.groups
@@ -365,7 +404,7 @@ function App() {
     await window.desktopApi.localTerminalTags.save({
       name: input.name.trim(),
       path: targetPath,
-      shell: 'powershell',
+      shell,
       groupId: input.groupId
     });
     await refreshLocalTerminalTags();
@@ -1389,7 +1428,7 @@ function LocalTerminalWorkspace({
   onSaveTerminalTag
 }: {
   tab: LocalTerminalTab;
-  onSaveTerminalTag: (targetPath: string) => void;
+  onSaveTerminalTag: (targetPath: string, shell?: LocalTerminalShell) => void;
 }) {
   const isActive = tab.status === 'opening' || tab.status === 'ready';
 
@@ -1413,7 +1452,7 @@ function LocalTerminalWorkspace({
             className="primaryButton compactButton"
             type="button"
             title="保存为命令行标签"
-            onClick={() => onSaveTerminalTag(tab.path)}
+            onClick={() => onSaveTerminalTag(tab.path, tab.shell)}
           >
             <FolderPlus size={15} />
             保存标签
@@ -1499,7 +1538,7 @@ function LocalFiles({
 }: {
   tab: LocalTab;
   onOpenTerminal: (targetPath: string) => void;
-  onSaveTerminalTag: (targetPath: string) => void;
+  onSaveTerminalTag: (targetPath: string, shell?: LocalTerminalShell) => void;
 }) {
   const [roots, setRoots] = useState<DriveRoot[]>([]);
   const [listing, setListing] = useState<FileListResult | null>(null);

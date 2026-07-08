@@ -64,6 +64,7 @@ contextBridge.exposeInMainWorld('desktopApi', {
       ipcRenderer.invoke('local-terminal:resize', tabId, cols, rows),
     close: (tabId: string) => ipcRenderer.invoke('local-terminal:close', tabId),
     onData: (listener: Listener) => on('local-terminal:data', listener),
+    onCwd: (listener: Listener) => on('local-terminal:cwd', listener),
     onClose: (listener: Listener) => on('local-terminal:close', listener)
   }
 });

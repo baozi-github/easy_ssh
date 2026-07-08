@@ -139,6 +139,7 @@ declare global {
         resize: (tabId: string, cols: number, rows: number) => Promise<boolean>;
         close: (tabId: string) => Promise<boolean>;
         onData: (listener: (payload: unknown) => void) => () => void;
+        onCwd: (listener: (payload: unknown) => void) => () => void;
         onClose: (listener: (payload: unknown) => void) => () => void;
       };
     };
