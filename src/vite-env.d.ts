@@ -10,6 +10,19 @@ export type ServerProfile = {
   credentialKey: string;
   lastConnectedAt: string;
   favorite?: boolean;
+  groupId?: string;
+};
+
+export type ServerGroup = {
+  id: string;
+  name: string;
+  createdAt: string;
+  order: number;
+};
+
+export type ProfilesState = {
+  groups: ServerGroup[];
+  profiles: ServerProfile[];
 };
 
 export type FileEntry = {
@@ -31,6 +44,39 @@ export type DriveRoot = {
   path: string;
 };
 
+export type LocalTerminalShell = 'powershell' | 'cmd';
+
+export type LocalTerminalTag = {
+  id: string;
+  name: string;
+  path: string;
+  shell: LocalTerminalShell;
+  createdAt: string;
+  lastOpenedAt: string;
+  groupId?: string;
+};
+
+export type LocalTerminalTagInput = {
+  id?: string;
+  name: string;
+  path: string;
+  shell?: LocalTerminalShell;
+  groupId?: string;
+};
+
+export type LocalTerminalTagsState = {
+  groups: ServerGroup[];
+  tags: LocalTerminalTag[];
+};
+
+export type LocalTerminalInput = {
+  tabId: string;
+  path: string;
+  shell?: LocalTerminalShell;
+  cols?: number;
+  rows?: number;
+};
+
 export type SshConnectInput = {
   tabId: string;
   name?: string;
@@ -39,6 +85,7 @@ export type SshConnectInput = {
   username: string;
   password?: string;
   credentialKey?: string;
+  groupId?: string;
   cols?: number;
   rows?: number;
 };
@@ -47,7 +94,24 @@ declare global {
   interface Window {
     desktopApi: {
       profiles: {
-        list: () => Promise<ServerProfile[]>;
+        list: () => Promise<ProfilesState>;
+        delete: (id: string) => Promise<boolean>;
+        move: (profileId: string, groupId: string) => Promise<boolean>;
+      };
+      groups: {
+        create: (name: string) => Promise<ServerGroup>;
+        rename: (id: string, name: string) => Promise<boolean>;
+        delete: (id: string) => Promise<boolean>;
+      };
+      localTerminalTags: {
+        list: () => Promise<LocalTerminalTagsState>;
+        save: (input: LocalTerminalTagInput) => Promise<LocalTerminalTag>;
+        delete: (id: string) => Promise<boolean>;
+        move: (tagId: string, groupId: string) => Promise<boolean>;
+      };
+      localTerminalGroups: {
+        create: (name: string) => Promise<ServerGroup>;
+        rename: (id: string, name: string) => Promise<boolean>;
         delete: (id: string) => Promise<boolean>;
       };
       files: {
@@ -67,6 +131,14 @@ declare global {
         onData: (listener: (payload: unknown) => void) => () => void;
         onReady: (listener: (payload: unknown) => void) => () => void;
         onError: (listener: (payload: unknown) => void) => () => void;
+        onClose: (listener: (payload: unknown) => void) => () => void;
+      };
+      localTerminal: {
+        open: (input: LocalTerminalInput) => Promise<boolean>;
+        input: (tabId: string, data: string) => Promise<boolean>;
+        resize: (tabId: string, cols: number, rows: number) => Promise<boolean>;
+        close: (tabId: string) => Promise<boolean>;
+        onData: (listener: (payload: unknown) => void) => () => void;
         onClose: (listener: (payload: unknown) => void) => () => void;
       };
     };

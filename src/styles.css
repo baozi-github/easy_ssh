@@ -18,7 +18,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -57,8 +58,13 @@ button {
   height: 38px;
   place-items: center;
   border-radius: 8px;
-  background: #256d7b;
-  color: white;
+  background: transparent;
+}
+
+.brandMark img {
+  width: 38px;
+  height: 38px;
+  display: block;
 }
 
 .brand strong,
@@ -126,9 +132,20 @@ button {
   color: white;
 }
 
+.iconButton:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
 .iconButton.small {
   width: 30px;
   height: 30px;
+}
+
+.iconButton.tiny {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
 }
 
 .iconButton.danger:hover {
@@ -140,9 +157,14 @@ button {
   min-height: 0;
 }
 
+.terminalTagsSection {
+  margin-bottom: 20px;
+}
+
 .sideTitle {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   margin-bottom: 10px;
   color: #b6c0cc;
@@ -150,12 +172,134 @@ button {
   font-weight: 700;
 }
 
+.sideTitle span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .profileList {
   display: flex;
   min-height: 0;
   flex-direction: column;
-  gap: 7px;
+  gap: 10px;
   overflow: auto;
+}
+
+.profileGroup {
+  display: grid;
+  gap: 7px;
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.groupToggle {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  border-radius: 6px;
+  background: transparent;
+  color: #c7d0dc;
+  cursor: pointer;
+  padding: 0 6px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.groupToggle:hover {
+  background: #222832;
+  color: #ffffff;
+}
+
+.groupToggle span {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.groupToggle small {
+  color: #8994a2;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.groupActions {
+  display: inline-flex;
+  flex: none;
+  gap: 4px;
+  opacity: 0.72;
+}
+
+.groupHeader:hover .groupActions {
+  opacity: 1;
+}
+
+.groupProfiles {
+  display: grid;
+  gap: 7px;
+}
+
+.terminalTagList {
+  display: grid;
+  gap: 7px;
+}
+
+.terminalTagItem {
+  position: relative;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  min-height: 50px;
+  border-radius: 8px;
+  background: #20252d;
+  color: #edf2f7;
+  cursor: pointer;
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 13px;
+}
+
+.terminalTagItem:hover {
+  background: #29313b;
+}
+
+.terminalTagItem span {
+  min-width: 0;
+}
+
+.terminalTagItem strong,
+.terminalTagItem small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.terminalTagItem small {
+  color: #9aa4b2;
+  font-size: 11px;
+}
+
+.terminalTagActions {
+  display: none;
+  flex: none;
+  gap: 7px;
+}
+
+.terminalTagItem:hover .terminalTagActions {
+  display: inline-flex;
 }
 
 .profileItem {
@@ -171,6 +315,7 @@ button {
   cursor: pointer;
   padding: 9px 10px;
   text-align: left;
+  font-size: 13px;
 }
 
 .profileItem:hover {
@@ -193,7 +338,7 @@ button {
 .profileMeta,
 .emptyState {
   color: #9aa4b2;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .deleteProfile {
@@ -206,6 +351,36 @@ button {
 
 .profileItem:hover .deleteProfile {
   display: inline-flex;
+}
+
+.profileActions {
+  display: none;
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  gap: 6px;
+}
+
+.profileItem:hover .profileActions {
+  display: inline-flex;
+}
+
+.profileAction {
+  display: inline-flex;
+  color: #c8d7ea;
+}
+
+.profileAction:hover {
+  color: #ffffff;
+}
+
+.profileAction.danger {
+  color: #ffb3be;
+}
+
+.emptyState.compact {
+  padding: 4px 8px 7px 36px;
+  font-size: 11px;
 }
 
 .workspace {
@@ -295,9 +470,28 @@ button {
   font-weight: 700;
 }
 
+.connectionState .primaryButton {
+  flex: none;
+  margin-left: 8px;
+}
+
 .endpoint {
   color: #9fa9b5;
   font-size: 12px;
+}
+
+.terminalHeaderActions {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.terminalHeaderActions .endpoint {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .terminalHost {
@@ -347,7 +541,8 @@ label {
   font-weight: 700;
 }
 
-input {
+input,
+select {
   width: 100%;
   height: 38px;
   border: 1px solid #343c48;
@@ -406,6 +601,57 @@ input:focus {
 .compactButton {
   height: 36px;
   padding: 0 12px;
+}
+
+.textButton {
+  width: auto;
+  padding: 0 12px;
+}
+
+.dialogBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: rgba(9, 11, 15, 0.68);
+  padding: 24px;
+}
+
+.dialogPanel {
+  display: grid;
+  width: min(420px, 100%);
+  gap: 14px;
+  border: 1px solid #343c48;
+  border-radius: 8px;
+  background: #1b2028;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+  padding: 20px;
+}
+
+.dialogTitle {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.dialogMessage {
+  overflow-wrap: anywhere;
+  color: #aeb8c5;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.dialogFieldGrid {
+  display: grid;
+  gap: 13px;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
 }
 
 .fileBody {

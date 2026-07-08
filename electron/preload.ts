@@ -11,7 +11,27 @@ function on(channel: string, listener: Listener) {
 contextBridge.exposeInMainWorld('desktopApi', {
   profiles: {
     list: () => ipcRenderer.invoke('profiles:list'),
-    delete: (id: string) => ipcRenderer.invoke('profiles:delete', id)
+    delete: (id: string) => ipcRenderer.invoke('profiles:delete', id),
+    move: (profileId: string, groupId: string) =>
+      ipcRenderer.invoke('profiles:move', profileId, groupId)
+  },
+  groups: {
+    create: (name: string) => ipcRenderer.invoke('groups:create', name),
+    rename: (id: string, name: string) => ipcRenderer.invoke('groups:rename', id, name),
+    delete: (id: string) => ipcRenderer.invoke('groups:delete', id)
+  },
+  localTerminalTags: {
+    list: () => ipcRenderer.invoke('local-terminal-tags:list'),
+    save: (input: unknown) => ipcRenderer.invoke('local-terminal-tags:save', input),
+    delete: (id: string) => ipcRenderer.invoke('local-terminal-tags:delete', id),
+    move: (tagId: string, groupId: string) =>
+      ipcRenderer.invoke('local-terminal-tags:move', tagId, groupId)
+  },
+  localTerminalGroups: {
+    create: (name: string) => ipcRenderer.invoke('local-terminal-groups:create', name),
+    rename: (id: string, name: string) =>
+      ipcRenderer.invoke('local-terminal-groups:rename', id, name),
+    delete: (id: string) => ipcRenderer.invoke('local-terminal-groups:delete', id)
   },
   files: {
     roots: () => ipcRenderer.invoke('fs:roots'),
@@ -35,5 +55,15 @@ contextBridge.exposeInMainWorld('desktopApi', {
     onReady: (listener: Listener) => on('ssh:ready', listener),
     onError: (listener: Listener) => on('ssh:error', listener),
     onClose: (listener: Listener) => on('ssh:close', listener)
+  },
+  localTerminal: {
+    open: (input: unknown) => ipcRenderer.invoke('local-terminal:open', input),
+    input: (tabId: string, data: string) =>
+      ipcRenderer.invoke('local-terminal:input', tabId, data),
+    resize: (tabId: string, cols: number, rows: number) =>
+      ipcRenderer.invoke('local-terminal:resize', tabId, cols, rows),
+    close: (tabId: string) => ipcRenderer.invoke('local-terminal:close', tabId),
+    onData: (listener: Listener) => on('local-terminal:data', listener),
+    onClose: (listener: Listener) => on('local-terminal:close', listener)
   }
 });

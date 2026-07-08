@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Easy SSH">
+  <defs>
+    <linearGradient id="bg" x1="40" y1="24" x2="216" y2="232" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2f9f9b" />
+      <stop offset="1" stop-color="#176372" />
+    </linearGradient>
+    <linearGradient id="screen" x1="64" y1="64" x2="190" y2="186" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#16323d" />
+      <stop offset="1" stop-color="#0c1720" />
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="url(#bg)" />
+  <path d="M58 82c0-13.3 10.7-24 24-24h92c13.3 0 24 10.7 24 24v72c0 13.3-10.7 24-24 24H82c-13.3 0-24-10.7-24-24V82Z" fill="url(#screen)" stroke="#d8fbff" stroke-width="10" />
+  <path d="M82 88h92" stroke="#62d6de" stroke-width="10" stroke-linecap="round" />
+  <path d="m91 113 28 25-28 25" fill="none" stroke="#f5fffd" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M130 164h38" stroke="#f2c94c" stroke-width="14" stroke-linecap="round" />
+  <path d="M177 104h18c14.9 0 27 12.1 27 27s-12.1 27-27 27h-18" fill="none" stroke="#f2c94c" stroke-width="12" stroke-linecap="round" />
+  <path d="M79 204h98" stroke="#d8fbff" stroke-width="12" stroke-linecap="round" opacity=".92" />
+</svg>

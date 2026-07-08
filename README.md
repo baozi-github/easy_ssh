@@ -5,7 +5,8 @@ Windows desktop SSH client built with Electron, React, Vite, and TypeScript.
 ## Features
 
 - SSH connection tabs
-- Saved connection history
+- Saved SSH connection history with groups
+- Local terminal tabs with saved directory labels and groups
 - Local file browsing
 - Windows installer generated with electron-builder
 
@@ -44,7 +45,7 @@ npm run dist
 The installer will be generated in the `release/` directory:
 
 ```text
-release/Easy-SSH-Setup-0.1.0.exe
+release/Easy-SSH-Setup-2.0.0.exe
 ```
 
 ## Download
@@ -53,14 +54,14 @@ Download the latest Windows installer from GitHub Releases:
 
 [Download EASY SSH for Windows](https://github.com/baozi-github/easy_ssh/releases/latest)
 
-Direct download for version `0.1.0`:
+Direct download for version `2.0.0`:
 
-[Easy-SSH-Setup-0.1.0.exe](https://github.com/baozi-github/easy_ssh/releases/download/v0.1.0/Easy-SSH-Setup-0.1.0.exe)
+[Easy-SSH-Setup-2.0.0.exe](https://github.com/baozi-github/easy_ssh/releases/download/v2.0.0/Easy-SSH-Setup-2.0.0.exe)
 
 SHA256:
 
 ```text
-28CF631CD54C0DAFB051035A0706C863FA4908DAEB501163EDA1193394126EEB
+39510B8F50C15C2911CD3C9B8FE27100772409F6760A595DC566B76967D23DBE
 ```
 
 ## Project scripts
