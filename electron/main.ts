@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, safeStorage, shell } from 'electron';
+import { app, BrowserWindow, clipboard, ipcMain, safeStorage, shell } from 'electron';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
@@ -494,6 +494,13 @@ function closeLocalTerminalSession(tabId: string) {
 }
 
 function registerIpc() {
+  ipcMain.handle('clipboard:readText', async () => clipboard.readText());
+
+  ipcMain.handle('clipboard:writeText', async (_event, text: string) => {
+    clipboard.writeText(text);
+    return true;
+  });
+
   ipcMain.handle('profiles:list', async () => {
     const state = await readProfilesState();
     return {

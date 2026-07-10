@@ -93,6 +93,10 @@ export type SshConnectInput = {
 declare global {
   interface Window {
     desktopApi: {
+      clipboard: {
+        readText: () => Promise<string>;
+        writeText: (text: string) => Promise<void>;
+      };
       profiles: {
         list: () => Promise<ProfilesState>;
         delete: (id: string) => Promise<boolean>;

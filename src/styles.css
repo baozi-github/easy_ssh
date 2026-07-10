@@ -495,13 +495,57 @@ button {
 }
 
 .terminalHost {
+  position: relative;
   min-height: 0;
   padding: 10px 12px;
   background: #101216;
 }
 
-.terminalHost .xterm {
+.terminalMount {
   height: 100%;
+  min-height: 0;
+}
+
+.terminalMount .xterm {
+  height: 100%;
+}
+
+.terminalContextMenu {
+  position: absolute;
+  z-index: 20;
+  display: grid;
+  min-width: 128px;
+  overflow: hidden;
+  border: 1px solid #353d49;
+  border-radius: 7px;
+  background: #1d232c;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.42);
+  padding: 4px;
+}
+
+.terminalContextMenu button {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  border-radius: 5px;
+  background: transparent;
+  color: #eef3f8;
+  cursor: pointer;
+  padding: 0 10px;
+  text-align: left;
+}
+
+.terminalContextMenu button:hover {
+  background: #2b3440;
+}
+
+.terminalContextMenu button:disabled {
+  color: #6e7885;
+  cursor: default;
+}
+
+.terminalContextMenu button:disabled:hover {
+  background: transparent;
 }
 
 .formWrap {

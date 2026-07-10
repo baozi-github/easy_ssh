@@ -148,6 +148,13 @@ type DialogRequest =
   | SelectDialogRequest
   | SaveTagDialogRequest;
 
+type TerminalClipboardMenuState = {
+  x: number;
+  y: number;
+  canCopy: boolean;
+  selectionText: string;
+};
+
 const DEFAULT_GROUP_ID = 'default';
 
 function uid(prefix: string) {
@@ -1358,11 +1365,105 @@ function SshForm({
   );
 }
 
+function isTerminalCopyShortcut(event: KeyboardEvent) {
+  return event.ctrlKey && event.shiftKey && event.code === 'KeyC';
+}
+
+function isTerminalPasteShortcut(event: KeyboardEvent) {
+  return event.ctrlKey && event.shiftKey && event.code === 'KeyV';
+}
+
+function terminalMenuPosition(event: MouseEvent, host: HTMLElement) {
+  const bounds = host.getBoundingClientRect();
+  const menuWidth = 136;
+  const menuHeight = 78;
+  const x = Math.min(Math.max(event.clientX - bounds.left, 8), Math.max(bounds.width - menuWidth - 8, 8));
+  const y = Math.min(Math.max(event.clientY - bounds.top, 8), Math.max(bounds.height - menuHeight - 8, 8));
+  return { x, y };
+}
+
+function normalizeTerminalPaste(text: string) {
+  return text.replace(/\r?\n/g, '\r');
+}
+
+function TerminalClipboardMenu({
+  menu,
+  onCopy,
+  onPaste,
+  onClose
+}: {
+  menu: TerminalClipboardMenuState;
+  onCopy: () => void;
+  onPaste: () => void;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const closeOnClick = () => onClose();
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+
+    window.addEventListener('click', closeOnClick);
+    window.addEventListener('keydown', closeOnEscape);
+    return () => {
+      window.removeEventListener('click', closeOnClick);
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      className="terminalContextMenu"
+      style={{ left: menu.x, top: menu.y }}
+      onMouseDown={(event) => event.stopPropagation()}
+      onClick={(event) => event.stopPropagation()}
+    >
+      <button
+        type="button"
+        disabled={!menu.canCopy}
+        onClick={onCopy}
+      >
+        复制
+      </button>
+      <button
+        type="button"
+        onClick={onPaste}
+      >
+        粘贴
+      </button>
+    </div>
+  );
+}
+
 function TerminalPanel({ tabId, enabled }: { tabId: string; enabled: boolean }) {
+  const hostRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const terminalRef = useRef<Terminal | null>(null);
   const fitRef = useRef<FitAddon | null>(null);
   const enabledRef = useRef(enabled);
+  const [clipboardMenu, setClipboardMenu] = useState<TerminalClipboardMenuState | null>(null);
+
+  const copySelection = async () => {
+    const selection = clipboardMenu?.selectionText || terminalRef.current?.getSelection();
+    try {
+      if (selection) await window.desktopApi.clipboard.writeText(selection);
+    } finally {
+      setClipboardMenu(null);
+      terminalRef.current?.focus();
+    }
+  };
+
+  const pasteClipboard = async () => {
+    try {
+      const text = await window.desktopApi.clipboard.readText();
+      if (text && enabledRef.current) {
+        await window.desktopApi.ssh.input(tabId, normalizeTerminalPaste(text));
+      }
+    } finally {
+      setClipboardMenu(null);
+      terminalRef.current?.focus();
+    }
+  };
 
   useEffect(() => {
     enabledRef.current = enabled;
@@ -1388,6 +1489,19 @@ function TerminalPanel({ tabId, enabled }: { tabId: string; enabled: boolean }) 
     fit.fit();
     terminal.focus();
 
+    terminal.attachCustomKeyEventHandler((event) => {
+      if (event.type !== 'keydown') return true;
+      if (isTerminalCopyShortcut(event)) {
+        copySelection();
+        return false;
+      }
+      if (isTerminalPasteShortcut(event)) {
+        pasteClipboard();
+        return false;
+      }
+      return true;
+    });
+
     terminal.onData((data) => {
       if (enabledRef.current) window.desktopApi.ssh.input(tabId, data);
     });
@@ -1399,11 +1513,26 @@ function TerminalPanel({ tabId, enabled }: { tabId: string; enabled: boolean }) 
     const observer = new ResizeObserver(resize);
     observer.observe(containerRef.current);
 
+    const openContextMenu = (event: MouseEvent) => {
+      event.preventDefault();
+      const host = hostRef.current;
+      if (!host) return;
+      terminal.focus();
+      const selectionText = terminal.getSelection();
+      setClipboardMenu({
+        ...terminalMenuPosition(event, host),
+        canCopy: Boolean(selectionText),
+        selectionText
+      });
+    };
+    containerRef.current.addEventListener('contextmenu', openContextMenu);
+
     terminalRef.current = terminal;
     fitRef.current = fit;
 
     return () => {
       observer.disconnect();
+      containerRef.current?.removeEventListener('contextmenu', openContextMenu);
       terminal.dispose();
       terminalRef.current = null;
       fitRef.current = null;
@@ -1420,7 +1549,19 @@ function TerminalPanel({ tabId, enabled }: { tabId: string; enabled: boolean }) 
     return offData;
   }, [tabId]);
 
-  return <div ref={containerRef} className="terminalHost" />;
+  return (
+    <div ref={hostRef} className="terminalHost">
+      <div ref={containerRef} className="terminalMount" />
+      {clipboardMenu && (
+        <TerminalClipboardMenu
+          menu={clipboardMenu}
+          onCopy={copySelection}
+          onPaste={pasteClipboard}
+          onClose={() => setClipboardMenu(null)}
+        />
+      )}
+    </div>
+  );
 }
 
 function LocalTerminalWorkspace({
@@ -1470,9 +1611,33 @@ function LocalTerminalWorkspace({
 }
 
 function LocalTerminalPanel({ tabId, enabled }: { tabId: string; enabled: boolean }) {
+  const hostRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const terminalRef = useRef<Terminal | null>(null);
   const enabledRef = useRef(enabled);
+  const [clipboardMenu, setClipboardMenu] = useState<TerminalClipboardMenuState | null>(null);
+
+  const copySelection = async () => {
+    const selection = clipboardMenu?.selectionText || terminalRef.current?.getSelection();
+    try {
+      if (selection) await window.desktopApi.clipboard.writeText(selection);
+    } finally {
+      setClipboardMenu(null);
+      terminalRef.current?.focus();
+    }
+  };
+
+  const pasteClipboard = async () => {
+    try {
+      const text = await window.desktopApi.clipboard.readText();
+      if (text && enabledRef.current) {
+        await window.desktopApi.localTerminal.input(tabId, normalizeTerminalPaste(text));
+      }
+    } finally {
+      setClipboardMenu(null);
+      terminalRef.current?.focus();
+    }
+  };
 
   useEffect(() => {
     enabledRef.current = enabled;
@@ -1498,6 +1663,19 @@ function LocalTerminalPanel({ tabId, enabled }: { tabId: string; enabled: boolea
     fit.fit();
     terminal.focus();
 
+    terminal.attachCustomKeyEventHandler((event) => {
+      if (event.type !== 'keydown') return true;
+      if (isTerminalCopyShortcut(event)) {
+        copySelection();
+        return false;
+      }
+      if (isTerminalPasteShortcut(event)) {
+        pasteClipboard();
+        return false;
+      }
+      return true;
+    });
+
     terminal.onData((data) => {
       if (enabledRef.current) window.desktopApi.localTerminal.input(tabId, data);
     });
@@ -1509,10 +1687,25 @@ function LocalTerminalPanel({ tabId, enabled }: { tabId: string; enabled: boolea
     const observer = new ResizeObserver(resize);
     observer.observe(containerRef.current);
 
+    const openContextMenu = (event: MouseEvent) => {
+      event.preventDefault();
+      const host = hostRef.current;
+      if (!host) return;
+      terminal.focus();
+      const selectionText = terminal.getSelection();
+      setClipboardMenu({
+        ...terminalMenuPosition(event, host),
+        canCopy: Boolean(selectionText),
+        selectionText
+      });
+    };
+    containerRef.current.addEventListener('contextmenu', openContextMenu);
+
     terminalRef.current = terminal;
 
     return () => {
       observer.disconnect();
+      containerRef.current?.removeEventListener('contextmenu', openContextMenu);
       terminal.dispose();
       terminalRef.current = null;
     };
@@ -1528,7 +1721,19 @@ function LocalTerminalPanel({ tabId, enabled }: { tabId: string; enabled: boolea
     return offData;
   }, [tabId]);
 
-  return <div ref={containerRef} className="terminalHost" />;
+  return (
+    <div ref={hostRef} className="terminalHost">
+      <div ref={containerRef} className="terminalMount" />
+      {clipboardMenu && (
+        <TerminalClipboardMenu
+          menu={clipboardMenu}
+          onCopy={copySelection}
+          onPaste={pasteClipboard}
+          onClose={() => setClipboardMenu(null)}
+        />
+      )}
+    </div>
+  );
 }
 
 function LocalFiles({

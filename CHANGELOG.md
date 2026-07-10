@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.1.0
+
+- Fixed copy and paste in SSH and local terminal sessions.
+
 ## v2.0.0
 
 - Added separate local terminal groups and SSH connection groups.

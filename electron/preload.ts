@@ -9,6 +9,10 @@ function on(channel: string, listener: Listener) {
 }
 
 contextBridge.exposeInMainWorld('desktopApi', {
+  clipboard: {
+    readText: () => ipcRenderer.invoke('clipboard:readText'),
+    writeText: (text: string) => ipcRenderer.invoke('clipboard:writeText', text)
+  },
   profiles: {
     list: () => ipcRenderer.invoke('profiles:list'),
     delete: (id: string) => ipcRenderer.invoke('profiles:delete', id),
